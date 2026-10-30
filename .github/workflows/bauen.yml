@@ -6,29 +6,34 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - run: unzip -q *.zip
-      - uses: actions/setup-java@v4
+      - id: co
+        uses: actions/checkout@v4
+      - id: unz
+        run: unzip -q *.zip
+      - id: jdk
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-      - uses: android-actions/setup-android@v3
-      - name: Bauen
+      - id: sdk
+        uses: android-actions/setup-android@v3
+      - id: bau
+        name: Bauen
         working-directory: Liederraten
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee ../build.log
           exit ${PIPESTATUS[0]}
-      - name: Fehler anzeigen
-        if: failure()
+      - name: Zusammenfassung
+        if: always()
         run: |
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          if [ -f build.log ]; then
-            grep -E "^e: |error:|What went wrong|Execution failed|Could not" -A4 build.log | head -80 >> $GITHUB_STEP_SUMMARY
-          else
-            echo "Kein Build-Log (Fehler vor dem Bauen)" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          {
+            echo '```'
+            echo "checkout=${{ steps.co.outcome }} unzip=${{ steps.unz.outcome }} java=${{ steps.jdk.outcome }} sdk=${{ steps.sdk.outcome }} bauen=${{ steps.bau.outcome }}"
+            ls -la
+            if [ -f build.log ]; then grep -E "^e: |error:|What went wrong|Execution failed|Could not" -A4 build.log | head -60; fi
+            echo '```'
+          } >> $GITHUB_STEP_SUMMARY
       - uses: actions/upload-artifact@v4
         with:
           name: liederraten-apk
