@@ -16,7 +16,8 @@ jobs:
           distribution: temurin
           java-version: 17
       - id: sdk
-        uses: android-actions/setup-android@v3
+        name: Android-Lizenzen
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
       - id: bau
         name: Bauen
         working-directory: Liederraten
@@ -30,7 +31,7 @@ jobs:
           {
             echo '```'
             echo "checkout=${{ steps.co.outcome }} unzip=${{ steps.unz.outcome }} java=${{ steps.jdk.outcome }} sdk=${{ steps.sdk.outcome }} bauen=${{ steps.bau.outcome }}"
-            ls -la
+            echo "ANDROID_HOME=$ANDROID_HOME"
             if [ -f build.log ]; then grep -E "^e: |error:|What went wrong|Execution failed|Could not" -A4 build.log | head -60; fi
             echo '```'
           } >> $GITHUB_STEP_SUMMARY
