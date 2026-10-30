@@ -9,7 +9,7 @@ jobs:
       - id: co
         uses: actions/checkout@v4
       - id: unz
-        run: unzip -q *.zip
+        run: ls *.zip | sort | while read -r z; do unzip -qo "$z"; done
       - id: jdk
         uses: actions/setup-java@v4
         with:
@@ -31,7 +31,6 @@ jobs:
           {
             echo '```'
             echo "checkout=${{ steps.co.outcome }} unzip=${{ steps.unz.outcome }} java=${{ steps.jdk.outcome }} sdk=${{ steps.sdk.outcome }} bauen=${{ steps.bau.outcome }}"
-            echo "ANDROID_HOME=$ANDROID_HOME"
             if [ -f build.log ]; then grep -E "^e: |error:|What went wrong|Execution failed|Could not" -A4 build.log | head -60; fi
             echo '```'
           } >> $GITHUB_STEP_SUMMARY
